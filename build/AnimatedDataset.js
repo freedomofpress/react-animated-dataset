@@ -98,56 +98,62 @@ function AnimatedDataset(_ref) {
     children = _ref.children;
   var ref = /*#__PURE__*/React.createRef();
   var refOldAttrs = React.useRef();
+  var attrs = mapKeys(unparsedAttrs, parseAttributeName);
+  var init = mapKeys(unparsedInit, parseAttributeName);
+  var events = mapKeys(unparsedEvents, parseEventName);
+  var durationByAttrParsed = mapKeys(durationByAttr, parseAttributeName);
+  var delayByAttrParsed = mapKeys(delayByAttr, parseAttributeName);
+  var easingByAttrParsed = mapKeys(easingByAttr, parseAttributeName);
+  var attrsList = Object.keys(attrs).filter(function (a) {
+    return a !== 'text';
+  });
+  var eventsList = Object.keys(events);
+  var oldAttrs = refOldAttrs.current || {};
+  var enter = function enter(_enter) {
+    var enterEls = _enter.append(tag).call(function (sel) {
+      attrsList.forEach(function (a) {
+        sel.attr(a, init.hasOwnProperty(a) ? init[a] : oldAttrs.hasOwnProperty(a) ? oldAttrs[a] : attrs[a]);
+      });
+    }).call(function (sel) {
+      eventsList.forEach(function (event) {
+        sel.on(event, events[event]);
+      });
+    }).call(function (sel) {
+      attrsList.forEach(function (a) {
+        var tran = disableAnimation ? sel : sel.transition(a).ease(easingByAttrParsed.hasOwnProperty(a) ? easingByAttrParsed[a] : easing).delay(delayByAttrParsed.hasOwnProperty(a) ? delayByAttrParsed[a] : delay).duration(durationByAttrParsed.hasOwnProperty(a) ? durationByAttrParsed[a] : duration);
+        tran.attr(a, attrs[a]);
+      });
+    });
+    if (attrs.text) enterEls.text(attrs.text);
+    return enterEls;
+  };
+  var update = function update(_update) {
+    var updateEls = _update.call(function (sel) {
+      attrsList.forEach(function (a) {
+        var tran = disableAnimation ? sel : sel.transition(a).ease(easingByAttrParsed.hasOwnProperty(a) ? easingByAttrParsed[a] : easing).delay(delayByAttrParsed.hasOwnProperty(a) ? delayByAttrParsed[a] : delay).duration(durationByAttrParsed.hasOwnProperty(a) ? durationByAttrParsed[a] : duration);
+        tran.attr(a, attrs[a]);
+      });
+    });
+    if (attrs.text) updateEls.text(attrs.text);
+    return updateEls;
+  };
+  var exit = function exit(_exit) {
+    return _exit.call(function (sel) {
+      attrsList.forEach(function (a) {
+        var tran = disableAnimation ? sel : sel.transition(a).ease(easingByAttrParsed.hasOwnProperty(a) ? easingByAttrParsed[a] : easing).delay(delayByAttrParsed.hasOwnProperty(a) ? delayByAttrParsed[a] : delay).duration(durationByAttrParsed.hasOwnProperty(a) ? durationByAttrParsed[a] : duration);
+        tran.attr(a, init.hasOwnProperty(a) ? init[a] : attrs[a]).remove();
+      });
+    });
+  };
+  select(ref.current).selectAll(tag).data(dataset, function (d) {
+    return d && keyFn(d) || select(this).attr("data-key");
+  }).enter(enter);
   React.useLayoutEffect(function () {
     if (!ref.current) return;
-    var attrs = mapKeys(unparsedAttrs, parseAttributeName);
-    var init = mapKeys(unparsedInit, parseAttributeName);
-    var events = mapKeys(unparsedEvents, parseEventName);
-    var durationByAttrParsed = mapKeys(durationByAttr, parseAttributeName);
-    var delayByAttrParsed = mapKeys(delayByAttr, parseAttributeName);
-    var easingByAttrParsed = mapKeys(easingByAttr, parseAttributeName);
-    var attrsList = Object.keys(attrs).filter(function (a) {
-      return a !== 'text';
-    });
-    var eventsList = Object.keys(events);
-    var oldAttrs = refOldAttrs.current || {};
     var animate = function animate() {
       select(ref.current).selectAll(tag).data(dataset, function (d) {
         return d && keyFn(d) || select(this).attr("data-key");
-      }).join(function (enter) {
-        var enterEls = enter.append(tag).call(function (sel) {
-          attrsList.forEach(function (a) {
-            sel.attr(a, init.hasOwnProperty(a) ? init[a] : oldAttrs.hasOwnProperty(a) ? oldAttrs[a] : attrs[a]);
-          });
-        }).call(function (sel) {
-          eventsList.forEach(function (event) {
-            sel.on(event, events[event]);
-          });
-        }).call(function (sel) {
-          attrsList.forEach(function (a) {
-            var tran = disableAnimation ? sel : sel.transition(a).ease(easingByAttrParsed.hasOwnProperty(a) ? easingByAttrParsed[a] : easing).delay(delayByAttrParsed.hasOwnProperty(a) ? delayByAttrParsed[a] : delay).duration(durationByAttrParsed.hasOwnProperty(a) ? durationByAttrParsed[a] : duration);
-            tran.attr(a, attrs[a]);
-          });
-        });
-        if (attrs.text) enterEls.text(attrs.text);
-        return enterEls;
-      }, function (update) {
-        var updateEls = update.call(function (sel) {
-          attrsList.forEach(function (a) {
-            var tran = disableAnimation ? sel : sel.transition(a).ease(easingByAttrParsed.hasOwnProperty(a) ? easingByAttrParsed[a] : easing).delay(delayByAttrParsed.hasOwnProperty(a) ? delayByAttrParsed[a] : delay).duration(durationByAttrParsed.hasOwnProperty(a) ? durationByAttrParsed[a] : duration);
-            tran.attr(a, attrs[a]);
-          });
-        });
-        if (attrs.text) updateEls.text(attrs.text);
-        return updateEls;
-      }, function (exit) {
-        return exit.call(function (sel) {
-          attrsList.forEach(function (a) {
-            var tran = disableAnimation ? sel : sel.transition(a).ease(easingByAttrParsed.hasOwnProperty(a) ? easingByAttrParsed[a] : easing).delay(delayByAttrParsed.hasOwnProperty(a) ? delayByAttrParsed[a] : delay).duration(durationByAttrParsed.hasOwnProperty(a) ? durationByAttrParsed[a] : duration);
-            tran.attr(a, init.hasOwnProperty(a) ? init[a] : attrs[a]).remove();
-          });
-        });
-      });
+      }).join(enter, update, exit);
       refOldAttrs.current = attrs;
     };
     if (disableAnimation) {
