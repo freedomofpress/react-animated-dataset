@@ -24,105 +24,109 @@ export function AnimatedDataset({
   const ref = React.createRef()
   const refOldAttrs = React.useRef()
 
+  const attrs = mapKeys(unparsedAttrs, parseAttributeName)
+  const init = mapKeys(unparsedInit, parseAttributeName)
+  const events = mapKeys(unparsedEvents, parseEventName)
+  const durationByAttrParsed = mapKeys(durationByAttr, parseAttributeName)
+  const delayByAttrParsed = mapKeys(delayByAttr, parseAttributeName)
+  const easingByAttrParsed = mapKeys(easingByAttr, parseAttributeName)
+
+  const attrsList = Object.keys(attrs).filter(a => a !== 'text')
+  const eventsList = Object.keys(events)
+  const oldAttrs = refOldAttrs.current || {}
+
+  const enter = enter => {
+    const enterEls = enter
+      .append(tag)
+      .call(sel => {
+        attrsList.forEach(a => {
+          sel.attr(
+            a,
+            init.hasOwnProperty(a)
+              ? init[a]
+              : oldAttrs.hasOwnProperty(a)
+                ? oldAttrs[a]
+                : attrs[a]
+          )
+        })
+      })
+      .call(sel => {
+        eventsList.forEach(event => {
+          sel.on(event, events[event])
+        })
+      })
+      .call(sel => {
+        attrsList.forEach(a => {
+          const tran = disableAnimation
+            ? sel
+            : sel
+              .transition(a)
+              .ease(easingByAttrParsed.hasOwnProperty(a) ? easingByAttrParsed[a] : easing)
+              .delay(delayByAttrParsed.hasOwnProperty(a) ? delayByAttrParsed[a] : delay)
+              .duration(
+                durationByAttrParsed.hasOwnProperty(a)
+                  ? durationByAttrParsed[a]
+                  : duration
+              )
+
+          tran.attr(a, attrs[a])
+        })
+      })
+    if (attrs.text) enterEls.text(attrs.text)
+    return enterEls
+  }
+
+  const update = update => {
+    const updateEls = update
+      .call(sel => {
+        attrsList.forEach(a => {
+            const tran = disableAnimation
+              ? sel
+              : sel
+                .transition(a)
+                .ease(easingByAttrParsed.hasOwnProperty(a) ? easingByAttrParsed[a] : easing)
+                .delay(delayByAttrParsed.hasOwnProperty(a) ? delayByAttrParsed[a] : delay)
+                .duration(
+                  durationByAttrParsed.hasOwnProperty(a) ? durationByAttrParsed[a] : duration
+                )
+
+            tran.attr(a, attrs[a])
+          }
+        )
+      })
+    if (attrs.text) updateEls.text(attrs.text)
+    return updateEls;
+  }
+
+  const exit = exit => exit.call(sel => {
+    attrsList.forEach(a => {
+      const tran = disableAnimation
+        ? sel
+        : sel
+          .transition(a)
+          .ease(easingByAttrParsed.hasOwnProperty(a) ? easingByAttrParsed[a] : easing)
+          .delay(delayByAttrParsed.hasOwnProperty(a) ? delayByAttrParsed[a] : delay)
+          .duration(
+            durationByAttrParsed.hasOwnProperty(a) ? durationByAttrParsed[a] : duration
+          )
+
+      tran.attr(a, init.hasOwnProperty(a) ? init[a] : attrs[a]).remove()
+    })
+  })
+
+  select(ref.current)
+    .selectAll(tag)
+    .data(dataset, function (d) { return (d && keyFn(d)) || select(this).attr("data-key"); })
+    .enter(enter)
+
   React.useLayoutEffect(() => {
     if (!ref.current) return
-
-    const attrs = mapKeys(unparsedAttrs, parseAttributeName)
-    const init = mapKeys(unparsedInit, parseAttributeName)
-    const events = mapKeys(unparsedEvents, parseEventName)
-    const durationByAttrParsed = mapKeys(durationByAttr, parseAttributeName)
-    const delayByAttrParsed = mapKeys(delayByAttr, parseAttributeName)
-    const easingByAttrParsed = mapKeys(easingByAttr, parseAttributeName)
-
-    const attrsList = Object.keys(attrs).filter(a => a !== 'text')
-    const eventsList = Object.keys(events)
-    const oldAttrs = refOldAttrs.current || {}
 
     const animate = () => {
       select(ref.current)
         .selectAll(tag)
         .data(dataset, function (d) { return (d && keyFn(d)) || select(this).attr("data-key"); })
-        .join(
-          enter => {
-            const enterEls = enter
-              .append(tag)
-              .call(sel => {
-                attrsList.forEach(a => {
-                  sel.attr(
-                    a,
-                    init.hasOwnProperty(a)
-                      ? init[a]
-                      : oldAttrs.hasOwnProperty(a)
-                      ? oldAttrs[a]
-                      : attrs[a]
-                  )
-                })
-              })
-              .call(sel => {
-                eventsList.forEach(event => {
-                  sel.on(event, events[event])
-                })
-              })
-              .call(sel => {
-                attrsList.forEach(a => {
-                  const tran = disableAnimation
-                    ? sel
-                    : sel
-                        .transition(a)
-                        .ease(easingByAttrParsed.hasOwnProperty(a) ? easingByAttrParsed[a] : easing)
-                        .delay(delayByAttrParsed.hasOwnProperty(a) ? delayByAttrParsed[a] : delay)
-                        .duration(
-                          durationByAttrParsed.hasOwnProperty(a)
-                            ? durationByAttrParsed[a]
-                            : duration
-                        )
-
-                  tran.attr(a, attrs[a])
-                })
-              })
-            if (attrs.text) enterEls.text(attrs.text)
-            return enterEls
-          },
-
-          update => {
-            const updateEls = update
-              .call(sel => {
-                attrsList.forEach(a => {
-                    const tran = disableAnimation
-                      ? sel
-                      : sel
-                        .transition(a)
-                        .ease(easingByAttrParsed.hasOwnProperty(a) ? easingByAttrParsed[a] : easing)
-                        .delay(delayByAttrParsed.hasOwnProperty(a) ? delayByAttrParsed[a] : delay)
-                        .duration(
-                          durationByAttrParsed.hasOwnProperty(a) ? durationByAttrParsed[a] : duration
-                        )
-
-                    tran.attr(a, attrs[a])
-                  }
-                )
-              })
-            if (attrs.text) updateEls.text(attrs.text)
-            return updateEls;
-          },
-
-          exit =>
-            exit.call(sel => {
-              attrsList.forEach(a => {
-                const tran = disableAnimation
-                  ? sel
-                  : sel
-                      .transition(a)
-                      .ease(easingByAttrParsed.hasOwnProperty(a) ? easingByAttrParsed[a] : easing)
-                      .delay(delayByAttrParsed.hasOwnProperty(a) ? delayByAttrParsed[a] : delay)
-                      .duration(
-                        durationByAttrParsed.hasOwnProperty(a) ? durationByAttrParsed[a] : duration
-                      )
-
-                tran.attr(a, init.hasOwnProperty(a) ? init[a] : attrs[a]).remove()
-              })
-            })
-        )
+        .join(enter, update, exit)
       refOldAttrs.current = attrs
     }
 
