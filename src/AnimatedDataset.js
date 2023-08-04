@@ -110,7 +110,7 @@ export function AnimatedDataset({
             durationByAttrParsed.hasOwnProperty(a) ? durationByAttrParsed[a] : duration
           )
 
-      tran.attr(a, init.hasOwnProperty(a) ? init[a] : attrs[a]).remove()
+      tran.remove()
     })
   })
 
@@ -151,6 +151,29 @@ export function AnimatedDataset({
     delayByAttr,
     easingByAttr,
   ])
+
+  if (disableAnimation) {
+    return (
+      <g ref={ref}>
+        {dataset.map(data => (React.createElement(
+          tag,
+          {
+            key: keyFn(data),
+            'data-key': keyFn(data),
+            ...attrsList.reduce((acc, val) => ({
+                ...acc,
+                [val]: typeof attrs[val] === "function" ? attrs[val](data) : attrs[val]
+              }), {})
+          },
+          children && React.Children.toArray(children)
+            .map(child => React.cloneElement(child, {
+              key: child.toString(),
+              dataset: [data]
+            }))
+        )))}
+      </g>
+    )
+  }
 
   return React.createElement(
     'g',

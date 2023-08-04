@@ -1,4 +1,5 @@
 import React from 'react'
+import ReactDOMServer from 'react-dom/server'
 import { mount } from 'enzyme'
 import { AnimatedDataset } from '../src/AnimatedDataset'
 
@@ -32,11 +33,11 @@ describe(AnimatedDataset, () => {
       </svg>
     )
 
-    expect(x).toBeCalledTimes(4)
-    expect(y).toBeCalledTimes(4)
+    expect(x).toBeCalledTimes(5)
+    expect(y).toBeCalledTimes(5)
 
     expect(wrapper.find('g').html()).toMatchInlineSnapshot(
-      `"<g><rect x=\\"0\\" y=\\"0\\"></rect><rect x=\\"1\\" y=\\"10\\"></rect></g>"`
+      `"<g><rect x=\\"0\\" y=\\"0\\"></rect><rect data-key=\\"1\\" x=\\"1\\" y=\\"10\\"></rect></g>"`
     )
   })
 
@@ -152,7 +153,21 @@ describe(AnimatedDataset, () => {
     )
 
     expect(wrapper.find('g').first().html()).toMatchInlineSnapshot(
-      `"<g><a data-key=\\"Hello World\\" href=\\"#test\\"><g><text>Hello World</text></g></a><a data-key=\\"Goodbye World\\" href=\\"#test\\"><g><text>Goodbye World</text></g></a></g>"`
+      `"<g><a data-key=\\"Hello World\\" href=\\"#test\\"><g><text data-key=\\"Hello World\\">Hello World</text></g></a><a data-key=\\"Goodbye World\\" href=\\"#test\\"><g><text data-key=\\"Goodbye World\\">Goodbye World</text></g></a></g>"`
     )
+  })
+
+  it('should server side render', () => {
+    const rendered = ReactDOMServer.renderToString(
+      <AnimatedDataset
+        tag="rect"
+        dataset={dataset}
+        attrs={attrs}
+        key={p => p.x}
+        disableAnimation
+      />
+    )
+
+    expect(rendered).toMatchInlineSnapshot(`"<g><rect x=\\"0\\" y=\\"0\\"></rect><rect x=\\"1\\" y=\\"10\\"></rect></g>"`)
   })
 })
